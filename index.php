@@ -1,0 +1,1 @@
+<?phprequire_once("MongoSession.php");$_SESSION['user'] = "John";print_r($_SESSION);?>
