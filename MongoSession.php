@@ -94,10 +94,10 @@ class MongoSession implements SessionHandlerInterface {
 		return '';
 	}
 
-    /**
-     * Atomically write data to the session
-     */
-    public function write($id, $data){
+	/**
+	 * Atomically write data to the session
+	 */
+	public function write($id, $data){
 		
 		// create new session data
 		$new_obj = array(
@@ -121,7 +121,7 @@ class MongoSession implements SessionHandlerInterface {
 		}
 
 		return true;
-    }
+	}
 	
 	/**
 	 * Destroys the session by removing the document with matching session_id.
