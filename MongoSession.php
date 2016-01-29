@@ -7,7 +7,7 @@ class MongoSession implements SessionHandlerInterface {
 	protected $_mongo;
 	protected $_session;
 
-    public function __construct(){
+	public function __construct(){
 
 		session_set_save_handler(
 			array($this, 'open'),
@@ -48,10 +48,10 @@ class MongoSession implements SessionHandlerInterface {
 		session_start();
 	}
 
-    /**
-     * Initialize MongoDB. 
-     */
-    private function _init(){        				
+	/**
+	 * Initialize MongoDB. 
+	 */
+	private function _init(){        				
 		try {
 			$this->_mongo = (new MongoClient("127.0.0.1:37017"))->selectDB("sessions")->trainings;
 			$this->_mongo->createIndex(array('expiry' => 1), array('name' => 'expiry', 'unique' => false, 'sparse' => true));
@@ -62,23 +62,23 @@ class MongoSession implements SessionHandlerInterface {
 		} catch (MongoException $e) {
 			die('Error: ' . $e->getMessage());
 		}  
-    }
+	}
 		
-    public function open($save_path, $session_name){
-        return true;
-    }
+	public function open($save_path, $session_name){
+		return true;
+	}
 
-    public function close(){
+	public function close(){
 		unset($this->_mongo);
 		return true;
-    }
+	}
 
-    /**
-     * Read the session data.
-     */
-    public function read($id){
-        // exclude results that are inactive or expired
-        $result = $this->_mongo->findOne(
+	/**
+	 * Read the session data.
+	 */
+	public function read($id){
+		// exclude results that are inactive or expired
+		$result = $this->_mongo->findOne(
 			array(
 				'session_id'	=> $id,
 				'expiry'    	=> array('$gte' => time()),
@@ -86,13 +86,13 @@ class MongoSession implements SessionHandlerInterface {
 			)
 		);
 
-        if (isset($result['data'])) {
-            $this->_session = $result;
-            return $result['data'];
-        }
+		if (isset($result['data'])) {
+			$this->_session = $result;
+			return $result['data'];
+		}
 
-        return '';
-   }
+		return '';
+	}
 
     /**
      * Atomically write data to the session
