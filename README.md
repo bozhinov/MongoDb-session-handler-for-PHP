@@ -1,4 +1,4 @@
-MongoDb session handler for PHP (5.6)
+MongoDb session handler for PHP (5.6 & 7)
 ===================
 
 Storing session in memory speeds code execution significantly, but most of all it helps you get rid of the files in the TEMP directory.
@@ -11,5 +11,3 @@ It is the way MongoDb works, even if you set the write concerns to write directl
 What I did is use the experimental-not-for-production storage engine that came with version 3.0 ("inMemoryExperiment") or "ephemeralForTest" in version 3.2
 It has been over an year now since I started using it and have not run into any bugs.
 Of course, if you can afford it, use the official solution that comes with the enterprise version of MongoDb.
-
-I will start working on the version for PHP 7x as soon as it is stable (both MongoDb driver and language)
