@@ -6,14 +6,14 @@ class MongoSession implements SessionHandlerInterface {
 	protected $_session;
 
     public function __construct(){
-		
+
         session_set_save_handler(
-            array($this, 'open'),
-            array($this, 'close'),
-            array($this, 'read'),
-            array($this, 'write'),
-            array($this, 'destroy'),
-            array($this, 'gc')
+            [$this, 'open'],
+            [$this, 'close'],
+            [$this, 'read'],
+            [$this, 'write'],
+            [$this, 'destroy'],
+            [$this, 'gc']
         );
 
         #ini_set('session.auto_start',               0);
@@ -34,9 +34,9 @@ class MongoSession implements SessionHandlerInterface {
 			'' #$_SERVER['SERVER_NAME']
 		);
         session_name('mongo_sess');
-    
+
 		session_register_shutdown();
-		
+
 		$this->_init();
 
         session_start();
@@ -45,9 +45,9 @@ class MongoSession implements SessionHandlerInterface {
     /**
      * Initialize MongoDB. 
      */
-    private function _init(){        				
+    private function _init(){
 
-		$this->_mongo = new MongoCore(null,"mongodb://127.0.0.1:37017");      
+		$this->_mongo = new MongoCore(null,"mongodb://127.0.0.1:37017");
         $this->_mongo->setConn("sessions.session");        
 		try {
 			$this->_mongo->createIndexes([
@@ -58,7 +58,7 @@ class MongoSession implements SessionHandlerInterface {
 			die("Session server isn't ready");
 		}
     }
-		
+
     public function open($save_path, $session_name){
         return true;
     }
@@ -73,11 +73,7 @@ class MongoSession implements SessionHandlerInterface {
     public function read($id){
         // exclude results that are inactive or expired
 				
-        $result = $this->_mongo->findOne([
-				'session_id'	=> $id,
-				'expiry'    	=> ['$gte' => time()],
-				'active'    	=> 1
-			]);
+        $result = $this->_mongo->findOne(['session_id'	=> $id,	'expiry' => ['$gte' => time()],	'active' => 1]);
 		
         if (isset($result[0]['data'])) {
             $this->_session = $result;
@@ -93,21 +89,19 @@ class MongoSession implements SessionHandlerInterface {
     public function write($id, $data){
 		
 		// create new session data
-        $new_obj = [
-            'data' => $data,
-            'active' => 1,
-            'expiry' => time() + 14400 # session lifetime in seconds
-        ];
-        
-        // check for existing session for merge
+        $new_obj = ['data' => $data, 'active' => 1, 'expiry' => time() + 14400]; # session lifetime in seconds
+       
+		// check for existing session for merge
         if (!empty($this->_session)) {
-            $new_obj = array_merge((array)$this->_session, $new_obj);
+            $new_obj = array_merge((array)$this->_session[0], $new_obj);
 		}
         unset($new_obj['_id']);
 		
 		// perform the update or insert
 		try {			
-			$result = $this->_mongo->updateOne([['session_id' => $id], ['$set' => $new_obj], ['upsert'=> TRUE]]); 
+			#print_r([['session_id' => $id], ['$set' => $new_obj], ['upsert'=> TRUE]]);
+			$result = $this->_mongo->updateOne([['session_id' => $id], ['$set' => $new_obj], ['upsert'=> TRUE]]);
+			#echo $result->getModifiedCount();
 		} catch (Exception $e) {
             die($e);
 		}
@@ -136,14 +130,14 @@ class MongoSession implements SessionHandlerInterface {
 
 		return true;
    	}
-	
+
 	/**
 	 * Solves issues with write() and close() throwing exceptions.
 	 */
 	public function __destruct(){
 		session_write_close();
 	}
-	
+
 }
 
 ?>
