@@ -7,15 +7,15 @@ class MongoSession implements SessionHandlerInterface {
 	protected $_mongo;
 	protected $_session;
 
-	public function __construct(){
-
+	public function __construct()
+	{
 		session_set_save_handler(
-			array($this, 'open'),
-			array($this, 'close'),
-			array($this, 'read'),
-			array($this, 'write'),
-			array($this, 'destroy'),
-			array($this, 'gc')
+			[$this, 'open'],
+			[$this, 'close'],
+			[$this, 'read'],
+			[$this, 'write'],
+			[$this, 'destroy'],
+			[$this, 'gc']
 		);
 
 		// Uncomment all needed that do not match defaults in php.ini
@@ -49,26 +49,29 @@ class MongoSession implements SessionHandlerInterface {
 	}
 
 	/**
-	 * Initialize MongoDB. 
+	 * Initialize MongoDB.
 	 */
-	private function _init(){        				
+	private function _init()
+	{
 		try {
 			$this->_mongo = (new MongoClient("127.0.0.1:37017"))->selectDB("sessions")->trainings;
-			$this->_mongo->createIndex(array('expiry' => 1), array('name' => 'expiry', 'unique' => false, 'sparse' => true));
-			$this->_mongo->createIndex(array('session_id' => 1), array('name' => 'session_id', 'unique' => true));
-			
+			$this->_mongo->createIndex(['expiry' => 1], ['name' => 'expiry', 'unique' => false, 'sparse' => true]);
+			$this->_mongo->createIndex(['session_id' => 1],['name' => 'session_id', 'unique' => true]);
+
 		} catch (MongoConnectionException $e) {
 			die('Error connecting to session server.');
 		} catch (MongoException $e) {
 			die('Error: ' . $e->getMessage());
-		}  
+		}
 	}
-		
-	public function open($save_path, $session_name){
+
+	public function open($save_path, $session_name)
+	{
 		return true;
 	}
 
-	public function close(){
+	public function close()
+	{
 		unset($this->_mongo);
 		return true;
 	}
@@ -76,15 +79,14 @@ class MongoSession implements SessionHandlerInterface {
 	/**
 	 * Read the session data.
 	 */
-	public function read($id){
+	public function read($id)
+	{
 		// exclude results that are inactive or expired
-		$result = $this->_mongo->findOne(
-			array(
-				'session_id'	=> $id,
-				'expiry'    	=> array('$gte' => time()),
-				'active'    	=> 1
-			)
-		);
+		$result = $this->_mongo->findOne([
+				'session_id' => $id,
+				'expiry'     => ['$gte' => time()],
+				'active'     => 1
+			]);
 
 		if (isset($result['data'])) {
 			$this->_session = $result;
@@ -97,24 +99,24 @@ class MongoSession implements SessionHandlerInterface {
 	/**
 	 * Atomically write data to the session
 	 */
-	public function write($id, $data){
-		
+	public function write($id, $data)
+	{
 		// create new session data
-		$new_obj = array(
+		$new_obj = [
 			'data' => $data,
 			'active' => 1,
 			'expiry' => time() + 14400 # session lifetime in seconds
-		);
+		];
 
 		// check for existing session for merge
 		if (!empty($this->_session)) {
 			$new_obj = array_merge((array)$this->_session, $new_obj);
 		}
 		unset($new_obj['_id']);
-				  
+
 		// perform the update or insert
 		try {
-			$result = $this->_mongo->update(array('session_id' => $id), array('$set' => $new_obj), array('upsert'=> TRUE)); 
+			$result = $this->_mongo->update(['session_id' => $id], ['$set' => $new_obj], ['upsert'=> TRUE]); 
 			return $result['ok'] == 1;
 		} catch (Exception $e) {
 			die($e);
@@ -122,36 +124,39 @@ class MongoSession implements SessionHandlerInterface {
 
 		return true;
 	}
-	
+
 	/**
 	 * Destroys the session by removing the document with matching session_id.
 	 */
-	public function destroy($id){
-		$this->_mongo->remove(array('session_id' => $id));
+	public function destroy($id)
+	{
+		$this->_mongo->remove(['session_id' => $id]);
 		return true;
 	}
 
 	/**
 	 * Garbage collection. Remove all expired entries atomically.
 	 */
-	public function gc($maxLifeTime = 3600){
+	public function gc($maxLifeTime = 3600)
+	{
 		// update expired elements and set to inactive
 		$this->_mongo->update(
-			array('expiry' => array('$lt' => time())),
-			array('$set' => array('active' => 0)),
-			array('multiple' => TRUE)
+			['expiry' => ['$lt' => time()]],
+			['$set' => ['active' => 0]],
+			['multiple' => TRUE]
 		);
 
 		return true;
 	}
-	
+
 	/**
 	 * Solves issues with write() and close() throwing exceptions.
 	 */
-	public function __destruct(){
+	public function __destruct()
+	{
 		session_write_close();
 	}
-	
+
 }
 
 new MongoSession();
