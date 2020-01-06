@@ -32,7 +32,7 @@ class MongoCore {
 	{
 		try {
 			$result = $this->manager->executeCommand($this->database, new \MongoDB\Driver\Command($cmd));
-			$result->setTypeMap(['root' => 'array', 'document' => 'array']); 
+			$result->setTypeMap(['root' => 'array', 'document' => 'array']);
 
 		} catch (\MongoDB\Driver\Exception\ConnectionTimeoutException $e){
 			die("DB::".$e->getMessage());
@@ -105,7 +105,7 @@ class MongoCore {
 				$bulk->update($d[0],$d[1]);
 			} else {
 				throw new Exception("Can't update with no criteria");
-			}			
+			}
 
 			$result = $this->execBulkWrite($bulk);
 

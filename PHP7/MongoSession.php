@@ -72,7 +72,8 @@ class MongoSession implements SessionHandlerInterface {
     /**
      * Read the session data.
      */
-    public function read($id){
+    public function read($id)
+	{
         // exclude results that are inactive or expired
 
         $result = $this->_mongo->findOne(['session_id'	=> $id,	'expiry' => ['$gte' => time()],	'active' => 1]);

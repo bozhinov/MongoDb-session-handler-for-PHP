@@ -24,7 +24,7 @@ class MongoSession implements SessionHandlerInterface {
 		#ini_set('session.gc_divisor',               100);
 		ini_set('session.gc_maxlifetime',           14400); # session lifetime in seconds
 		#ini_set('session.referer_check',            '');
-		#ini_set('session.entropy_file',             '/dev/urandom');   
+		#ini_set('session.entropy_file',             '/dev/urandom');
 		#ini_set('session.entropy_length',           16);
 		#ini_set('session.use_cookies',              1);
 		#ini_set('session.use_only_cookies',         1);
